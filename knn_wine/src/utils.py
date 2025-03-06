@@ -46,9 +46,8 @@ def eda():
     print(df.info())
     
     
-    
-def eda_chart(df, suffix = "prescaled"):
-    # boxp PER FEATURES ESCLUDENDO MAGNESIO, PROLINE E ALCALINITY OF ASH
+def eda_chart_box_preprocessed(df, suffix = "prescaled"):
+# boxp PER FEATURES ESCLUDENDO MAGNESIO, PROLINE E ALCALINITY OF ASH
     df_long = df.copy().drop(["Magnesium", "Proline", "Alcalinity of ash"], axis = 1)
     df_long = df_long.melt(id_vars=["Class"])
 
@@ -58,6 +57,7 @@ def eda_chart(df, suffix = "prescaled"):
 
     plt.savefig(rf"chart\PP_boxp1_{suffix}.png")
     plt.close()
+
 
     # boxp PER FEATURES MAGNESIO, PROLINE E ALCALINITY OF ASH
     df_long = df.copy()[["Class", "Magnesium", "Proline", "Alcalinity of ash"]]
@@ -69,31 +69,37 @@ def eda_chart(df, suffix = "prescaled"):
 
     plt.savefig(rf"chart\PP_boxp2_{suffix}.png")
     plt.close()
-
-    # pairp
+    
+    
+def eda_chart_heat_pair(df):   
+    # PAIRPLOT
     sns.pairplot(df, hue="Class", diag_kind="kde", palette="Set2")
-    plt.savefig(rf"chart\PP_pairp_{suffix}.png")
+    plt.savefig(rf"chart\PP_pairp.png")
     plt.close()
     
-    # heatm
-        # Calcoliamo la matrice di correlazione
-    corr_matrix = df.drop(columns=["Class"]).corr()
-
-    # Calcoliamo la matrice di correlazione
-    corr_matrix = df.drop(columns=["Class"]).corr()
-
-    # Creiamo una maschera per nascondere la parte superiore della matrice
-    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-
-    # Creiamo la heatm senza la parte superiore
+    # HEATMAP        
+    corr_matrix = df.drop(columns=["Class"]).corr()             # Matrice di correlazione    
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))       # Maschera per nascondere la parte superiore della matrice
+    
     plt.figure(figsize=(10, 8))
     sns.heatmap(corr_matrix, mask=mask, annot=True, cmap="coolwarm", fmt=".2f", 
                 linewidths=0.5, vmin=-1, vmax=1, cbar_kws={"shrink": 0.8})
-
     plt.title("heatm delle Correlazioni tra le Feature (Senza Ridondanze)")
-
-    plt.savefig(rf"chart\PP_heatm_{suffix}.png")
+    plt.savefig(rf"chart\PP_heatm_.png")
     plt.close()
+    
+    
+def eda_chart_box_scaled(df, suffix = "StandardScaled"):    
+    df_long = df.copy()
+    df_long = df_long.melt(id_vars=["Class"])
+    
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax = sns.boxplot(data = df_long, x = "value", y = "variable", orient="h", hue = "Class", palette="Set2")
+    plt.tight_layout()
+
+    plt.savefig(rf"chart\PP_boxp1_{suffix}.png")
+    plt.close()
+    
 
 
 
@@ -109,10 +115,11 @@ def pca_plot(df, suffix = "prescaled"):
     df_pca["Class"] = df["Class"]
     
     print(pca.explained_variance_ratio_.cumsum())
+    explained_var = pca.explained_variance_ratio_.cumsum()
     
     # Scatterplot delle due componenti principali
     plt.figure(figsize=(8, 6))
     sns.scatterplot(data=df_pca, x="PC1", y="PC2", hue="Class", palette="Set2")
-    plt.title(f"PCA: Proiezione delle prime due componenti principali {pca.explained_variance_ratio_.cumsum()}")
+    plt.title(f"PCA: Proiezione delle prime due componenti principali [{explained_var[0]:.6f} {explained_var[1]:.6f}]")
     plt.savefig(rf"chart\pca_{suffix}.png")
     plt.close()
